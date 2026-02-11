@@ -22,7 +22,13 @@ function DashboardInner() {
   const [open, setOpen] = React.useState(false)
   const [title, setTitle] = React.useState("")
   const [creating, setCreating] = React.useState(false)
-  const email = localStorage.getItem("email")
+  const [email, setEmail] = React.useState<string | null>(null)
+
+  // Access localStorage only on the client side to prevent hydration errors
+  React.useEffect(() => {
+    setEmail(localStorage.getItem("email"))
+  }, [])
+
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault()
     if (!title.trim()) return

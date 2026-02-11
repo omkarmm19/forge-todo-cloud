@@ -41,7 +41,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUserState(userObj)
         }
         toast({ title: "Signed in", description: "Welcome back!" })
-      } 
+      }
     } catch (e: any) {
       toast({
         title: "Sign in failed",
