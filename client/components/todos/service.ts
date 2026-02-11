@@ -22,7 +22,7 @@ function writeLocal(data: Todo[]) {
 export async function listTodos(): Promise<Todo[]> {
   if (hasRemoteApi()) {
     const api = getApiClient()
-    const { data } = await api.get("/")
+    const { data } = await api.get("/api/v1/todo")
     return data as Todo[]
   }
   return readLocal()
@@ -31,7 +31,7 @@ export async function listTodos(): Promise<Todo[]> {
 export async function createTodo(input: Pick<Todo, "title"> & Partial<Todo>): Promise<Todo> {
   if (hasRemoteApi()) {
     const api = getApiClient()
-    const { data } = await api.post("/", { title: input.title, completed: !!input.completed })
+    const { data } = await api.post("/api/v1/todo", { title: input.title, completed: !!input.completed })
     return data as Todo
   }
   const curr = readLocal()
@@ -50,7 +50,7 @@ export async function createTodo(input: Pick<Todo, "title"> & Partial<Todo>): Pr
 export async function updateTodo(todo: Todo): Promise<Todo> {
   if (hasRemoteApi()) {
     const api = getApiClient()
-    const { data } = await api.put("/", todo)
+    const { data } = await api.put("/api/v1/todo", todo)
     return data as Todo
   }
   const list = readLocal()
@@ -65,7 +65,7 @@ export async function updateTodo(todo: Todo): Promise<Todo> {
 export async function deleteTodo(id: string): Promise<void> {
   if (hasRemoteApi()) {
     const api = getApiClient()
-    await api.delete("/", { data: { id } })
+    await api.delete("/api/v1/todo", { data: { id } })
     return
   }
   const list = readLocal().filter((t) => t.id !== id)

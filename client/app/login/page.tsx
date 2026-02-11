@@ -12,55 +12,55 @@ import { useRouter } from "next/navigation"
 
 
 export default function LoginPage() {
-const router = useRouter();
-const BACKEND_URL = process.env.BACKEND_URL
-useEffect(() => {
-  // 1. Create an AbortController to cancel the request if the component unmounts
-  const controller = new AbortController();
+  const router = useRouter();
+  const BACKEND_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000"
+  useEffect(() => {
+    // 1. Create an AbortController to cancel the request if the component unmounts
+    const controller = new AbortController();
 
-  // 2. Define an async function inside the effect
-  const validateToken = async () => {
-    const token = getToken();
-    // Only proceed if a token exists
-    if (token) {
-      try {
-        const response = await axios.get(
-          `${BACKEND_URL}/api/v1/user/validate-token`,
-          {
-            headers: { Authorization: `Bearer ${token}` }, // Standard practice to include "Bearer"
-            signal: controller.signal, // Pass the signal to axios
+    // 2. Define an async function inside the effect
+    const validateToken = async () => {
+      const token = getToken();
+      // Only proceed if a token exists
+      if (token) {
+        try {
+          const response = await axios.get(
+            `${BACKEND_URL}/api/v1/user/validate-token`,
+            {
+              headers: { Authorization: `Bearer ${token}` }, // Standard practice to include "Bearer"
+              signal: controller.signal, // Pass the signal to axios
+            }
+          );
+
+          // If the API call is successful and the token is valid
+          if (response.data.success) {
+            router.replace("/dashboard"); // Redirect to dashboard
+          } else {
+            // The server responded but said the token is not valid
+            clearAuth();
           }
-        );
-
-        // If the API call is successful and the token is valid
-        if (response.data.success) {
-          router.replace("/dashboard"); // Redirect to dashboard
-        } else {
-          // The server responded but said the token is not valid
-          clearAuth();
-        }
-      } catch (error) {
-        // 3. Handle errors, including the cancellation error
-        if (axios.isCancel(error)) {
-          // This is expected if the component unmounts. No action needed.
-          console.log("Request canceled: Token validation aborted.");
-        } else {
-          // Any other error (e.g., 401 Unauthorized, 500 server error) means the token is invalid
-          console.error("Token validation failed:", error);
-          clearAuth();
+        } catch (error) {
+          // 3. Handle errors, including the cancellation error
+          if (axios.isCancel(error)) {
+            // This is expected if the component unmounts. No action needed.
+            console.log("Request canceled: Token validation aborted.");
+          } else {
+            // Any other error (e.g., 401 Unauthorized, 500 server error) means the token is invalid
+            console.error("Token validation failed:", error);
+            clearAuth();
+          }
         }
       }
-    }
-  };
+    };
 
-  validateToken();
+    validateToken();
 
-  // 4. Return a cleanup function
-  return () => {
-    // This function runs when the component unmounts
-    controller.abort();
-  };
-}, []);
+    // 4. Return a cleanup function
+    return () => {
+      // This function runs when the component unmounts
+      controller.abort();
+    };
+  }, []);
 
   return (
     <AuthProvider>
