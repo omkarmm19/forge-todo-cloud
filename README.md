@@ -211,6 +211,36 @@ npm run lint     # Run ESLint
 - ✅ Environment variables for sensitive data
 - ✅ SQL injection prevention via Prisma ORM
 
+## 🌐 Deployment
+
+Ready to deploy your app to production? Check out our comprehensive deployment guide:
+
+📖 **[DEPLOYMENT.md](./DEPLOYMENT.md)** - Complete guide covering:
+- Database setup with Neon PostgreSQL
+- Backend deployment (Vercel, Railway, or Render)
+- Frontend deployment (Vercel)
+- Environment variable configuration
+- Post-deployment verification
+- Troubleshooting common issues
+
+### Quick Deploy
+
+**Backend (Vercel)**:
+```bash
+cd server
+vercel
+```
+
+**Frontend (Vercel)**:
+```bash
+cd client
+vercel
+```
+
+> [!IMPORTANT]
+> Make sure to configure environment variables in your deployment platform before deploying. See [DEPLOYMENT.md](./DEPLOYMENT.md) for details.
+
+
 ## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.

@@ -24,14 +24,15 @@ import todoRouter from './routes/todo.js';
 
 const app: express.Application = express();
 const PORT = process.env.PORT || 3000;
+
 /**
  * Define allowed origins for CORS. It's a best practice to manage this
  * via environment variables for different environments (development, production).
+ * Supports multiple origins separated by commas in FRONT_END_URL.
  */
-const allowedOrigins = [
-  process.env.FRONT_END_URL || 'http://localhost:5173',
-  // You can add more origins here if needed
-];
+const allowedOrigins = process.env.FRONT_END_URL
+  ? process.env.FRONT_END_URL.split(',').map(url => url.trim())
+  : ['http://localhost:5173', 'http://localhost:3001'];
 
 const corsOptions = {
   origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
@@ -63,7 +64,54 @@ app.use(express.json());
 app.use("/api/v1/user", userRouter);
 app.use("/api/v1/todo", todoRouter);
 
-// export default app;
+// ----------------------------------------------------------------
+// |                      Health Check Endpoint                   |
+// ----------------------------------------------------------------
+
+/**
+ * Health check endpoint for monitoring and deployment verification.
+ * Returns server status and database connectivity.
+ */
+app.get("/health", async (req, res) => {
+  try {
+    // Check database connectivity
+    await prisma.$queryRaw`SELECT 1`;
+    res.status(200).json({
+      status: "healthy",
+      timestamp: new Date().toISOString(),
+      database: "connected",
+      uptime: process.uptime(),
+    });
+  } catch (error) {
+    res.status(503).json({
+      status: "unhealthy",
+      timestamp: new Date().toISOString(),
+      database: "disconnected",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+});
+
+app.get("/api/health", async (req, res) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    res.status(200).json({
+      status: "healthy",
+      timestamp: new Date().toISOString(),
+      database: "connected",
+    });
+  } catch (error) {
+    res.status(503).json({
+      status: "unhealthy",
+      timestamp: new Date().toISOString(),
+      database: "disconnected",
+    });
+  }
+});
+
+// Export app for serverless deployment (e.g., Vercel)
+export default app;
+
 // ----------------------------------------------------------------
 // |                 Server and Database Startup                  |
 // ----------------------------------------------------------------
