@@ -45,16 +45,32 @@ const corsOptions = {
     console.log('🌐 Incoming request from origin:', origin);
 
     // Allow requests with no origin (like mobile apps or curl requests)
-    // or if the origin is in the allowed list.
-    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-      console.log('✅ Origin allowed');
+    if (!origin) {
+      console.log('✅ Origin allowed (no origin header)');
       callback(null, true);
-    } else {
-      console.log('❌ Origin blocked - not in allowed list');
-      console.log('   Expected one of:', allowedOrigins);
-      console.log('   Got:', origin);
-      callback(new Error('Not allowed by CORS'));
+      return;
     }
+
+    // Check if origin is in the explicit allowed list
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      console.log('✅ Origin allowed (in allowed list)');
+      callback(null, true);
+      return;
+    }
+
+    // Allow all Vercel preview deployments (*.vercel.app)
+    if (origin.endsWith('.vercel.app')) {
+      console.log('✅ Origin allowed (Vercel preview deployment)');
+      callback(null, true);
+      return;
+    }
+
+    // Block all other origins
+    console.log('❌ Origin blocked - not in allowed list');
+    console.log('   Expected one of:', allowedOrigins);
+    console.log('   Or any *.vercel.app domain');
+    console.log('   Got:', origin);
+    callback(new Error('Not allowed by CORS'));
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true,
