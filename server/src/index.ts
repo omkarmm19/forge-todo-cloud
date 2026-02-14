@@ -34,13 +34,25 @@ const allowedOrigins = process.env.FRONT_END_URL
   ? process.env.FRONT_END_URL.split(',').map(url => url.trim())
   : ['http://localhost:5173', 'http://localhost:3001'];
 
+// Debug logging to help troubleshoot CORS issues
+console.log('🔒 CORS Configuration:');
+console.log('   Allowed Origins:', allowedOrigins);
+console.log('   FRONT_END_URL env:', process.env.FRONT_END_URL);
+
 const corsOptions = {
   origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    // Debug: Log incoming origin
+    console.log('🌐 Incoming request from origin:', origin);
+
     // Allow requests with no origin (like mobile apps or curl requests)
     // or if the origin is in the allowed list.
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      console.log('✅ Origin allowed');
       callback(null, true);
     } else {
+      console.log('❌ Origin blocked - not in allowed list');
+      console.log('   Expected one of:', allowedOrigins);
+      console.log('   Got:', origin);
       callback(new Error('Not allowed by CORS'));
     }
   },
