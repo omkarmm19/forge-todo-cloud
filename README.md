@@ -225,10 +225,10 @@ Ready to deploy your app to production? Check out our comprehensive deployment g
 
 ### Quick Deploy
 
-**Backend (Vercel)**:
+**Backend (Render)**:
 ```bash
 cd server
-vercel
+render
 ```
 
 **Frontend (Vercel)**:
