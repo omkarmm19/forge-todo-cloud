@@ -1,0 +1,67 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: forge_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: forge_user
+      POSTGRES_PASSWORD: forge_password
+      POSTGRES_DB: forge_todo
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - forge_network
+
+  server-python:
+    build:
+      context: ./server-python
+      dockerfile: Dockerfile
+    container_name: forge_server
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: postgresql://forge_user:forge_password@postgres:5432/forge_todo
+      JWT_USER_SECRET: ${JWT_USER_SECRET:-fallback_secret_key_for_dev}
+      PORT: 3000
+      FRONT_END_URL: http://localhost:5173,http://localhost:8080,http://localhost
+    networks:
+      - forge_network
+
+  client-react:
+    build:
+      context: ./client-react
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: /api
+    container_name: forge_client
+    restart: unless-stopped
+    depends_on:
+      - server-python
+    networks:
+      - forge_network
+
+  # Main Reverse Proxy for public access
+  nginx:
+    image: nginx:alpine
+    container_name: forge_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - client-react
+      - server-python
+    networks:
+      - forge_network
+
+volumes:
+  postgres_data:
+
+networks:
+  forge_network:
+    driver: bridge

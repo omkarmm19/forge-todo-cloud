@@ -78,3 +78,15 @@ coverage/
 # ============================================
 .vercel
 .turbo
+
+# ============================================
+# Python / FastAPI
+# ============================================
+server-python/venv/
+server-python/.venv/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
