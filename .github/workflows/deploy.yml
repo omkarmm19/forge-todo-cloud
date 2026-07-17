@@ -1,6 +1,6 @@
 name: CI/CD Pipeline
 
-# Runs on every push to main
+# Runs on every push to main and on pull requests
 on:
   push:
     branches: [main]
@@ -44,7 +44,7 @@ jobs:
           python -c "import schemas; print('✅ schemas.py imports OK')"
           python -c "from routes import user, todo; print('✅ routers import OK')"
 
-      # Only push Docker image on push to main (not on PRs)
+      # CD steps — only on push to main, not on PRs
       - name: Set up Docker Buildx
         if: github.event_name == 'push'
         uses: docker/setup-buildx-action@v3
@@ -56,7 +56,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build & push backend image
+      - name: Build & push backend image to Docker Hub
         if: github.event_name == 'push'
         uses: docker/build-push-action@v6
         with:
@@ -64,11 +64,11 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/forge-server:latest
 
-      - name: Trigger Render Deploy (Backend)
+      - name: Trigger Render Deploy (Backend CD)
         if: github.event_name == 'push'
         run: |
           curl -s "${{ secrets.RENDER_DEPLOY_HOOK_BACKEND }}" \
-            -o /dev/null -w "Render deploy triggered: %{http_code}\n"
+            -o /dev/null -w "Render deploy triggered: HTTP %{http_code}\n"
 
 
   # ── Frontend (React + Vite) ────────────────────────────────────────────────
@@ -99,7 +99,7 @@ jobs:
           VITE_API_BASE_URL: https://forge-todo-cloud.onrender.com
         run: npm run build
 
-      # Only push Docker image on push to main (not on PRs)
+      # CD steps — only on push to main, not on PRs
       - name: Set up Docker Buildx
         if: github.event_name == 'push'
         uses: docker/setup-buildx-action@v3
@@ -111,7 +111,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build & push frontend image
+      - name: Build & push frontend image to Docker Hub
         if: github.event_name == 'push'
         uses: docker/build-push-action@v6
         with:
@@ -120,3 +120,9 @@ jobs:
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/forge-client:latest
           build-args: |
             VITE_API_BASE_URL=https://forge-todo-cloud.onrender.com
+
+      - name: Trigger Vercel Deploy (Frontend CD)
+        if: github.event_name == 'push' && secrets.VERCEL_DEPLOY_HOOK_FRONTEND != ''
+        run: |
+          curl -s "${{ secrets.VERCEL_DEPLOY_HOOK_FRONTEND }}" \
+            -o /dev/null -w "Vercel deploy triggered: HTTP %{http_code}\n"
