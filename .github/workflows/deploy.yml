@@ -1,46 +1,122 @@
 name: CI/CD Pipeline
 
+# Runs on every push to main
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
-  build-and-deploy:
+
+  # ── Backend (Python + FastAPI) ─────────────────────────────────────────────
+  backend-ci:
+    name: CI / Backend (Python)
     runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: server-python
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: server-python/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Verify imports (smoke test)
+        env:
+          DATABASE_URL: sqlite:///./ci_test.db
+          JWT_USER_SECRET: dummy-secret-key-for-ci-only
+          FRONT_END_URL: http://localhost:5173
+        run: |
+          python -c "import main; print('✅ main.py imports OK')"
+          python -c "import auth; print('✅ auth.py imports OK')"
+          python -c "import models; print('✅ models.py imports OK')"
+          python -c "import schemas; print('✅ schemas.py imports OK')"
+          python -c "from routes import user, todo; print('✅ routers import OK')"
+
+      # Only push Docker image on push to main (not on PRs)
+      - name: Set up Docker Buildx
+        if: github.event_name == 'push'
+        uses: docker/setup-buildx-action@v3
+
       - name: Log in to Docker Hub
+        if: github.event_name == 'push'
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build & push server image
-        uses: docker/build-push-action@v5
+      - name: Build & push backend image
+        if: github.event_name == 'push'
+        uses: docker/build-push-action@v6
         with:
           context: ./server-python
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/forge-server:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/forge-server:latest
 
-      - name: Build & push client image
-        uses: docker/build-push-action@v5
+      - name: Trigger Render Deploy (Backend)
+        if: github.event_name == 'push'
+        run: |
+          curl -s "${{ secrets.RENDER_DEPLOY_HOOK_BACKEND }}" \
+            -o /dev/null -w "Render deploy triggered: %{http_code}\n"
+
+
+  # ── Frontend (React + Vite) ────────────────────────────────────────────────
+  frontend-ci:
+    name: CI / Frontend (Node)
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: client-react
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: client-react/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build production bundle
+        env:
+          VITE_API_BASE_URL: https://forge-todo-cloud.onrender.com
+        run: npm run build
+
+      # Only push Docker image on push to main (not on PRs)
+      - name: Set up Docker Buildx
+        if: github.event_name == 'push'
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Docker Hub
+        if: github.event_name == 'push'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build & push frontend image
+        if: github.event_name == 'push'
+        uses: docker/build-push-action@v6
         with:
           context: ./client-react
           push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/forge-client:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/forge-client:latest
           build-args: |
-            VITE_API_BASE_URL=/api
-
-      - name: Deploy to Cloud VM via SSH
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.VM_HOST }}
-          username: ${{ secrets.VM_USER }}
-          key: ${{ secrets.VM_SSH_KEY }}
-          script: |
-            cd ~/forge-todo-app
-            docker compose pull
-            docker compose up -d
+            VITE_API_BASE_URL=https://forge-todo-cloud.onrender.com
