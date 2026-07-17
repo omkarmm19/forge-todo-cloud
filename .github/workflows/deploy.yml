@@ -122,7 +122,7 @@ jobs:
             VITE_API_BASE_URL=https://forge-todo-cloud.onrender.com
 
       - name: Trigger Vercel Deploy (Frontend CD)
-        if: github.event_name == 'push' && secrets.VERCEL_DEPLOY_HOOK_FRONTEND != ''
+        if: github.event_name == 'push'
         run: |
           curl -s "${{ secrets.VERCEL_DEPLOY_HOOK_FRONTEND }}" \
             -o /dev/null -w "Vercel deploy triggered: HTTP %{http_code}\n"
