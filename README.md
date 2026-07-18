@@ -1,296 +1,248 @@
-# 🚀 Forge Todo App: Devopsified
+# ⚒️ Forge Todo
 
-A modern, high-performance full-stack todo application **completely Devopsified**. Rebuilt with a **FastAPI** Python backend and a **React 19 SPA (Vite)** frontend, this project is engineered for automated deployments, containerization, and enterprise-grade CI/CD workflows.
+A full-stack, cloud-deployed task manager built with **FastAPI**, **React 19**, and **PostgreSQL** — fully containerized and automated with a CI/CD pipeline using GitHub Actions, Docker Hub, Render, and Vercel.
 
+[![CI/CD Pipeline](https://github.com/omkarmm19/forge-todo-cloud/actions/workflows/deploy.yml/badge.svg)](https://github.com/omkarmm19/forge-todo-cloud/actions/workflows/deploy.yml)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com/)
 [![React](https://img.shields.io/badge/React-19-61DAFB?style=for-the-badge&logo=react)](https://react.dev/)
-[![Docker](https://img.shields.io/badge/Docker-Enabled-2496ED?style=for-the-badge&logo=docker)](https://www.docker.com/)
-[![GitHub Actions](https://img.shields.io/badge/CI/CD-GitHub_Actions-2088FF?style=for-the-badge&logo=githubactions)](https://github.com/features/actions)
+[![Docker](https://img.shields.io/badge/Docker-Hub-2496ED?style=for-the-badge&logo=docker)](https://hub.docker.com/)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-blue?style=for-the-badge&logo=postgresql)](https://neon.tech/)
 
----
-
-## ✨ Devopsified Features
-
-- 🐳 **Full Containerization** — Both Frontend and Backend are containerized with optimized Dockerfiles.
-- 🔄 **Automated CI/CD** — Pro-grade GitHub Actions pipeline for building, pushing, and auto-deploying.
-- 🏗️ **Orchestrated Stack** — One-command spin-up of the entire infrastructure using Docker Compose.
-- 🛡️ **Reverse Proxy Integration** — Nginx-powered routing for secure and efficient traffic management.
-- ⚡ **Production-Ready Multi-stage Builds** — Minimized image sizes for lightning-fast deployments.
-- 🔐 **Secure Auth Flow** — JWT-based authentication with high-entropy bcrypt hashing.
-- 🎨 **Modern Frontend** — React 19 SPA built with Vite and TailwindCSS v4.
-- 🚀 **Python Power** — Blazing fast FastAPI backend with SQLAlchemy 2.0.
+🌐 **Live App:** [forge-todo-cloud.vercel.app](https://forge-todo-cloud.vercel.app)
+⚙️ **API:** [forge-todo-cloud.onrender.com](https://forge-todo-cloud.onrender.com)
 
 ---
 
-## 🛠️ Tech Stack & Infrastructure
+## ✨ Features
 
-### 🌐 Frontend (React SPA)
-- **Engine**: React 19 + Vite
-- **Styling**: TailwindCSS 4.x + Shadcn/ui
-- **State**: React Context + SWR
-- **Deployment**: Vercel (CDP) or Docker/Nginx
-
-### ⚙️ Backend (Python API)
-- **Engine**: FastAPI (Python 3.11+)
-- **ORM**: SQLAlchemy 2.0
-- **Auth**: JWT + Bcrypt
-- **Deployment**: Render (Web Service) or Docker/Uvicorn
-
-### 🏗️ DevOps Strategy
-- **Containerization**: Docker / Docker Compose
-- **Web Server**: Nginx (Reverse Proxy & SPA Hosting)
-- **CI/CD**: GitHub Actions
-- **Registry**: Docker Hub / GHCR
-- **Infrastructure**: Optimized for any Cloud VM or Serverless provider.
+- 🔐 **JWT Authentication** — Secure signup/login with bcrypt password hashing
+- ✅ **User-isolated CRUD** — Each user manages their own todos only
+- 🐳 **Fully Containerized** — Multi-stage Dockerfiles for both frontend and backend
+- 🔄 **Automated CI/CD** — GitHub Actions builds Docker images, pushes to Docker Hub, and triggers cloud deployments
+- 🏗️ **Docker Compose** — One-command local stack with Nginx reverse proxy
+- ⚡ **FastAPI + SQLAlchemy** — High-performance Python backend with async support
+- 🎨 **React 19 + Shadcn/ui** — Modern SPA with TailwindCSS and dark mode
 
 ---
 
-## 📋 Prerequisites
+## 🛠️ Tech Stack
 
-- **Python** (v3.10 or higher)
-- **Node.js** (v18 or higher)
-- **PostgreSQL** database (or use Neon serverless)
-- **Git**
+| Layer | Technology |
+|---|---|
+| **Frontend** | React 19, Vite, TailwindCSS v4, Shadcn/ui |
+| **Backend** | FastAPI (Python 3.11), SQLAlchemy 2.0 |
+| **Auth** | JWT (python-jose) + bcrypt |
+| **Database** | PostgreSQL (Neon serverless) |
+| **Containerization** | Docker, Docker Compose, Nginx |
+| **CI/CD** | GitHub Actions |
+| **Registry** | Docker Hub |
+| **Hosting** | Render (backend) + Vercel (frontend) |
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Local Development
 
-### 1. Clone the Repository
+### Prerequisites
+- Python 3.11+
+- Node.js 20+
+- Docker & Docker Compose
+
+### Option A — Docker Compose (Recommended)
+
+Runs the full stack (frontend + backend + PostgreSQL + Nginx) with one command:
+
 ```bash
-git clone <your-repo-url>
-cd forge-todo-app
+git clone https://github.com/omkarmm19/forge-todo-cloud.git
+cd forge-todo-cloud
+
+# Create root .env
+echo "JWT_USER_SECRET=local-dev-secret" > .env
+
+# Start all 4 services
+docker compose up --build
 ```
 
-### 2. Backend Setup (FastAPI)
+App available at: **http://localhost:80**
 
+### Option B — Manual Setup
+
+**Backend:**
 ```bash
 cd server-python
-python -m venv venv
-source venv/bin/activate  # On Windows use `venv\Scripts\activate`
+python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-Create `.env` in `server-python`:
+Create `server-python/.env`:
 ```env
 DATABASE_URL=postgresql://user:pass@host.neon.tech/db?sslmode=require
 JWT_USER_SECRET=your-super-secret-jwt-key
-PORT=3000
 FRONT_END_URL=http://localhost:5173
 ```
 
-Run the server:
 ```bash
 uvicorn main:app --reload --port 3000
 ```
-API runs on: **http://localhost:3000**
 
-### 3. Frontend Setup (React/Vite)
-
+**Frontend:**
 ```bash
 cd client-react
 npm install
 ```
 
-Create `.env` in `client-react`:
+Create `client-react/.env`:
 ```env
 VITE_API_BASE_URL=http://localhost:3000
 ```
 
-Run the client:
 ```bash
 npm run dev
 ```
-Client runs on: **http://localhost:5173**
 
 ---
 
 ## 📁 Project Structure
 
 ```
-forge-todo-app/
-├── client-react/              # React SPA frontend
+forge-todo-cloud/
+├── .github/
+│   └── workflows/
+│       └── deploy.yml         # CI/CD pipeline
+│
+├── client-react/              # React 19 SPA (Vite)
 │   ├── src/
-│   │   ├── components/        # UI and Form components (Shadcn based)
-│   │   ├── lib/               # API clients and utilities
-│   │   ├── pages/             # Routing views (Login, Dashboard, etc)
-│   │   └── App.tsx            # Main React Router
-│   ├── package.json
-│   └── vite.config.ts         # Vite build configuration
+│   │   ├── components/        # Shadcn/ui components
+│   │   ├── lib/               # API client (axios + SWR)
+│   │   ├── pages/             # Login, Signup, Dashboard
+│   │   └── App.tsx            # Router setup
+│   ├── Dockerfile             # Multi-stage: Node build → Nginx serve
+│   ├── nginx.conf             # SPA routing config
+│   └── index.html
 │
 ├── server-python/             # FastAPI backend
-│   ├── routers/               # API route definitions
-│   │   ├── user.py            # Auth routes
-│   │   └── todo.py            # Todo CRUD routes
-│   ├── auth.py                # JWT and Password hashing (bcrypt)
-│   ├── database.py            # SQLAlchemy Connection Engine
-│   ├── models.py              # SQLAlchemy Database Models
-│   ├── schemas.py             # Pydantic Validation Schemas
-│   ├── main.py                # Server entry point
-│   ├── requirements.txt       # Python dependencies
-│   └── .env                   # Environment config
+│   ├── routes/
+│   │   ├── user.py            # /api/v1/user — Auth routes
+│   │   └── todo.py            # /api/v1/todo — CRUD routes
+│   ├── auth.py                # JWT creation & verification
+│   ├── database.py            # SQLAlchemy engine & session
+│   ├── models.py              # User & Todo ORM models
+│   ├── schemas.py             # Pydantic request/response schemas
+│   ├── main.py                # FastAPI app entrypoint
+│   ├── Dockerfile             # Python 3.11 slim image
+│   └── requirements.txt
 │
-├── DEPLOYMENT.md              # Cloud deployment guide (Render/Vercel)
-└── README.md                  # This file
+├── nginx/
+│   └── nginx.conf             # Reverse proxy (Docker Compose)
+│
+├── docker-compose.yml         # Full local stack orchestration
+└── README.md
 ```
 
 ---
 
-## 🔑 API Endpoints
+## 🔑 API Reference
 
-### Authentication
-- `POST /api/v1/user/signup` — Create new user account
-- `POST /api/v1/user/signin` — User login
-- `GET /api/v1/user/me` — Get current user (requires auth)
+### Auth
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/v1/user/signup` | Register new user |
+| `POST` | `/api/v1/user/signin` | Login → returns JWT |
+| `GET`  | `/api/v1/user/me` | Verify token (auth required) |
 
 ### Todos
-- `GET /api/v1/todo` — Get all todos for authenticated user
-- `POST /api/v1/todo` — Create a new todo
-- `PUT /api/v1/todo/:id` — Update a todo
-- `DELETE /api/v1/todo/:id` — Delete a todo
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET`  | `/api/v1/todo` | Get all todos for current user |
+| `POST` | `/api/v1/todo` | Create new todo |
+| `PUT`  | `/api/v1/todo` | Update todo (id in body) |
+| `DELETE` | `/api/v1/todo` | Delete todo (id in body) |
+
+> All todo endpoints require `Authorization: Bearer <token>` header.
 
 ---
 
-## 🐳 Docker Setup (Devopsified)
+## ⚙️ CI/CD Pipeline
 
-> [!NOTE]
-> This section describes the containerized architecture for the Forge Todo App. The Docker configuration brings up the entire stack — frontend, backend, PostgreSQL, and Nginx — with a single command.
-
-### Architecture Overview
+Every push to `main` triggers the GitHub Actions pipeline:
 
 ```
-                        ┌─────────────────────────────────┐
-                        │          Nginx (Port 80)         │
-                        │        Reverse Proxy             │
-                        └───────────┬─────────────┬────────┘
-                                    │             │
-                        ┌───────────▼──┐  ┌───────▼──────────┐
-                        │  React/Vite  │  │   FastAPI API     │
-                        │  Frontend    │  │   Backend         │
-                        │  :80         │  │   :3000           │
-                        └──────────────┘  └───────┬──────────┘
-                                                  │
-                                        ┌─────────▼──────────┐
-                                        │   PostgreSQL DB     │
-                                        │   (Docker Volume)   │
-                                        └────────────────────┘
-```
-
-### Services in Docker Compose
-
-| Service          | Image                       | Port | Description                        |
-|------------------|-----------------------------|----|--------------------------------------|
-| `postgres`       | `postgres:16-alpine`        | 5432 | Self-hosted PostgreSQL database    |
-| `server-python`  | Custom (Python 3.11)        | 3000 | FastAPI API backend                |
-| `client-react`   | Custom (Node/Nginx)         | 80   | React SPA served via Nginx         |
-| `nginx`          | `nginx:alpine`              | 80   | Reverse proxy for routing traffic  |
-
-### Docker Environment Files
-
-Create a `.env` file in the project root:
-```env
-JWT_USER_SECRET=your-super-secret-jwt-key
-```
-*(Never commit this file to Git)*
-
-### Running with Docker Compose
-
-```bash
-# Build and start all services in detached mode
-docker compose up --build -d
-
-# View logs
-docker compose logs -f
-
-# Stop and remove all services
-docker compose down
-
-# Wipe database
-docker compose down -v
-```
-
----
-
-## ⚙️ CI/CD with GitHub Actions
-
-The CI/CD pipeline automates Docker image building, pushing to a container registry, and auto-deploying to a cloud VM via SSH.
-
-### Pipeline Architecture
-
-```
-Push to main
+git push → main
      │
-     ▼
-┌────────────────────────────────────┐
-│  Build Docker Images               │
-│     - forge-server                 │
-│     - forge-client                 │
-└────────────────┬───────────────────┘
-                 │
-                 ▼
-┌────────────────────────────────────┐
-│  Push to Docker Hub                │
-└────────────────┬───────────────────┘
-                 │
-                 ▼
-┌────────────────────────────────────┐
-│  SSH into Cloud VM                 │
-│  - Pull latest images              │
-│  - docker compose up -d            │
-└────────────────────────────────────┘
+     ├── CI / Backend (Python)
+     │     ├── Python 3.11 setup + pip install
+     │     ├── Smoke test (import checks)
+     │     ├── Docker build → push forge-server:latest to Docker Hub
+     │     └── Trigger Render Deploy Hook → Backend redeploys
+     │
+     └── CI / Frontend (Node)
+           ├── Node 20 setup + npm ci
+           ├── Production build (npm run build)
+           ├── Docker build → push forge-client:latest to Docker Hub
+           └── Trigger Vercel Deploy Hook → Frontend redeploys
 ```
 
 ### GitHub Secrets Required
-Add these to your repository settings (`Settings > Secrets and variables > Actions`):
 
-| Secret                      | Description                          |
-|-----------------------------|--------------------------------------|
-| `DOCKER_USERNAME`           | Docker Hub username                  |
-| `DOCKER_PASSWORD`           | Docker Hub password / access token   |
-| `VM_HOST`                   | IP address of your cloud VM          |
-| `VM_USER`                   | SSH username (e.g. `ubuntu`, `root`) |
-| `VM_SSH_KEY`                | Private SSH key for the VM           |
-
-### ☁️ Cloud VM Deployment (AWS EC2 / DigitalOcean)
-
-1. Provision an Ubuntu 22.04 VM (1 vCPU, 2GB RAM).
-2. Open Ports `22` (SSH) and `80` (HTTP).
-3. Connect and install Docker:
-   ```bash
-   curl -fsSL https://get.docker.com | sh
-   sudo usermod -aG docker $USER
-   ```
-4. Clone the repository and configure your `.env` secret.
-5. GitHub actions will automatically handle the rest on every push to `main`!
+| Secret | Description |
+|--------|-------------|
+| `DOCKERHUB_USERNAME` | Docker Hub username |
+| `DOCKERHUB_TOKEN` | Docker Hub access token (Read & Write) |
+| `RENDER_DEPLOY_HOOK_BACKEND` | Render deploy hook URL |
+| `VERCEL_DEPLOY_HOOK_FRONTEND` | Vercel deploy hook URL |
 
 ---
 
-## 🌐 Deployment Options
+## 🐳 Docker Architecture
 
-The project supports both **containerized VM deployments** (detailed above) and **Serverless/Web Service hosting**.
+### Local (Docker Compose)
+```
+                    ┌─────────────────────┐
+                    │   Nginx (Port 80)    │
+                    │   Reverse Proxy      │
+                    └──────┬──────────────┘
+                           │
+              ┌────────────┴────────────┐
+              │                         │
+    ┌─────────▼──────┐      ┌──────────▼──────┐
+    │ React/Nginx    │      │  FastAPI         │
+    │ :80            │      │  :3000           │
+    └────────────────┘      └──────────┬───────┘
+                                       │
+                             ┌─────────▼──────────┐
+                             │  PostgreSQL :5432   │
+                             └────────────────────┘
+```
 
-- **Frontend**: Vercel (Static optimized SPA)
-- **Backend**: Render (FastAPI Web Service)
-- **Database**: Neon PostgreSQL
+### Production (Cloud)
+```
+Vercel (CDN)          Render (Web Service)      Neon (Serverless DB)
+React SPA        →    FastAPI + Uvicorn      →   PostgreSQL
+```
 
-📖 Read the comprehensive **[DEPLOYMENT.md](./DEPLOYMENT.md)** for exact step-by-step instructions on Serverless deployment.
+---
+
+## 🌐 Cloud Deployment
+
+| Service | Platform | URL |
+|---------|----------|-----|
+| **Frontend** | Vercel | [forge-todo-cloud.vercel.app](https://forge-todo-cloud.vercel.app) |
+| **Backend** | Render | [forge-todo-cloud.onrender.com](https://forge-todo-cloud.onrender.com) |
+| **Database** | Neon PostgreSQL | Serverless (ap-southeast-1) |
+
+### Render Environment Variables
+```env
+DATABASE_URL    = postgresql://...neon.tech/neondb?sslmode=require
+JWT_USER_SECRET = your-production-secret
+FRONT_END_URL   = https://forge-todo-cloud.vercel.app
+```
+
+### Vercel Environment Variables
+```env
+VITE_API_BASE_URL = https://forge-todo-cloud.onrender.com
+```
 
 ---
 
 ## 📝 License
 
-This project is open source and available under the [MIT License](LICENSE).
-
----
-
-## 🙏 Acknowledgments
-
-- Backend powered by [FastAPI](https://fastapi.tiangolo.com/) and [SQLAlchemy](https://docs.sqlalchemy.org/)
-- Frontend built with [Vite](https://vite.dev/) and [React 19](https://react.dev/)
-- UI inspired by [shadcn/ui](https://ui.shadcn.com/)
-- Database hosted on [Neon](https://neon.tech/)
-
----
-
-**Happy Coding! 🎉💻**
+MIT License — open source and free to use.
