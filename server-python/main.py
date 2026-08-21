@@ -16,21 +16,33 @@ Base.metadata.create_all(bind=engine)
 app = FastAPI(title="Forge Todo API", version="1.0.0")
 
 # CORS Configuration
-allowed_origins = os.getenv("FRONT_END_URL", "http://localhost:5173,http://localhost:3001").split(",")
+raw_origins = os.getenv("FRONT_END_URL", "http://localhost:5173,http://localhost:3001,http://localhost:8080,http://localhost:80").split(",")
+allowed_origins = [origin.strip() for origin in raw_origins if origin.strip()]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
-    allow_origin_regex=r"https://.*\.vercel\.app|^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
+    allow_origins=allowed_origins if allowed_origins else ["*"],
+    allow_origin_regex=r"https://.*\.vercel\.app|https://.*\.onrender\.com|^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Include Routers
-app.include_router(user.router)
-app.include_router(todo.router)
+# Root endpoint for UptimeRobot / uptime monitors / health checks
+@app.get("/")
+def root():
+    return {
+        "status": "healthy",
+        "message": "Forge Todo API is running",
+        "version": "1.0.0"
+    }
 
+# Lightweight liveness probe
+@app.get("/ping")
+def ping():
+    return {"status": "pong"}
+
+# Readiness and deep database health check
 @app.get("/health")
 @app.get("/api/health")
 def health_check(db: Session = Depends(get_db)):
@@ -41,7 +53,11 @@ def health_check(db: Session = Depends(get_db)):
             "database": "connected"
         }
     except Exception as e:
-        raise HTTPException(status_code=503, detail="Database connection failed")
+        raise HTTPException(status_code=503, detail=f"Database connection failed: {str(e)}")
+
+# Include Routers
+app.include_router(user.router)
+app.include_router(todo.router)
 
 if __name__ == "__main__":
     import uvicorn

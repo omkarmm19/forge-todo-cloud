@@ -1,5 +1,5 @@
 import axios, { type AxiosError, type AxiosInstance } from "axios"
-import { getToken, setToken, clearAuth } from "./auth-storage"
+import { getToken, clearAuth } from "./auth-storage"
 
 // Set your API base URL; if absent, we'll operate in mock mode for Todos.
 export const API_BASE = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000"
@@ -22,36 +22,18 @@ export function getApiClient() {
     return config
   })
 
-  let isRefreshing = false
-  let pendingQueue: Array<() => void> = []
-
   client.interceptors.response.use(
     (res) => res,
     async (error: AxiosError) => {
       const original = error.config as any
-      if (error.response?.status === 401 && !original?._retry) {
-        if (isRefreshing) {
-          await new Promise<void>((resolve) => pendingQueue.push(resolve))
-          return client!(original)
-        }
-        original._retry = true
-        isRefreshing = true
-        try {
-          // Attempt refresh; works if server uses cookies or returns new tokens.
-          const { data } = await client!.post("/auth/refresh")
-          const newToken = (data as any)?.token
-          if (newToken) {
-            setToken(newToken)
-          }
-          pendingQueue.forEach((fn) => fn())
-          pendingQueue = []
-          return client!(original)
-        } catch (e) {
-          clearAuth()
-          return Promise.reject(e)
-        } finally {
-          isRefreshing = false
-        }
+      const url = original?.url || ""
+
+      // Do not clear auth or retry on signin/signup endpoints
+      const isAuthEndpoint = url.includes("/signin") || url.includes("/signup")
+
+      if (error.response?.status === 401 && !isAuthEndpoint) {
+        // Token is invalid or expired
+        clearAuth()
       }
       return Promise.reject(error)
     },
