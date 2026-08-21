@@ -29,7 +29,7 @@ app.add_middleware(
 )
 
 # Root endpoint for UptimeRobot / uptime monitors / health checks
-@app.get("/")
+@app.api_route("/", methods=["GET", "HEAD"])
 def root():
     return {
         "status": "healthy",
@@ -38,13 +38,13 @@ def root():
     }
 
 # Lightweight liveness probe
-@app.get("/ping")
+@app.api_route("/ping", methods=["GET", "HEAD"])
 def ping():
     return {"status": "pong"}
 
 # Readiness and deep database health check
-@app.get("/health")
-@app.get("/api/health")
+@app.api_route("/health", methods=["GET", "HEAD"])
+@app.api_route("/api/health", methods=["GET", "HEAD"])
 def health_check(db: Session = Depends(get_db)):
     try:
         db.execute(text("SELECT 1"))
